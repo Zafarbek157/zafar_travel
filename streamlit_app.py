@@ -33,6 +33,11 @@ age = st.number_input("Yosh", min_value=1, max_value=100, value=30)
 duration = st.number_input("Davomiyligi (kun)", min_value=1, max_value=60, value=7)
 cost = st.number_input("Umumiy xarajat", min_value=100, max_value=10000, value=1000)
 
+# Kategorik input (Destination)
+destination_options = ["Tashkent", "Samarkand", "Bukhara", "Khiva", "Fergana",
+                       "Dubai", "Istanbul", "Paris", "London", "Tokyo"]  # Xorijiy va Ichki
+destination = st.selectbox("Destination", options=destination_options)
+
 st.button("Natijani ko‘rish", on_click=run_prediction)
 
 # ----------------------
@@ -41,8 +46,8 @@ st.button("Natijani ko‘rish", on_click=run_prediction)
 if st.session_state.run_prediction:
 
     # DataFrame yaratish
-    df_input = pd.DataFrame([[age, duration, cost]],
-                            columns=["Traveler age", "Duration (days)", "Accommodation cost"])
+    df_input = pd.DataFrame([[age, duration, cost, destination]],
+                            columns=["Traveler age", "Duration (days)", "Accommodation cost", "Destination"])
 
     # Feature columns dagi barcha ustunlar mavjudligini tekshirish va default qiymat berish
     for col in feature_columns:
