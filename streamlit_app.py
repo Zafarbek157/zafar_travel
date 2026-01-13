@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import numpy as np
 
 st.set_page_config(page_title="Travel Prediction", layout="centered")
 
@@ -23,53 +24,51 @@ age = st.number_input("Yosh", min_value=1, max_value=100, value=30)
 duration = st.number_input("Davomiyligi (kun)", min_value=1, max_value=60, value=7)
 cost = st.number_input("Umumiy xarajat", min_value=100, max_value=10000, value=1000)
 
-# Agar boshqa kategorik ustunlar train_model’da bo‘lsa, default qiymat beramiz
-# Misol: gender, accommodation_type va h.k.
-default_cats = {col: 0 for col in label_encoders.keys()}  # 0 = train’dagi default label
+# ----------------------
+# 3. Inputni DataFrame formatiga keltirish
+# ----------------------
+df_input = pd.DataFrame([[age, duration, cost]],
+                        columns=["Traveler age", "Duration (days)", "Accommodation cost"])
 
-if st.button("Natijani ko‘rish"):
+# ----------------------
+# 4. Boshqa feature_columns ustunlarini qo‘shish
+# ----------------------
+for col in feature_columns:
+    if col not in df_input.columns:
+        if col in label_encoders:
+            df_input[col] = 0  # kategorik default label 0
+        else:
+            df_input[col] = 0  # numeric default 0
 
-    # ----------------------
-    # 3. Inputni DataFrame formatiga keltirish
-    # ----------------------
-    df_input = pd.DataFrame([[age, duration, cost]],
-                            columns=["Traveler age", "Duration (days)", "Accommodation cost"])
-
-    # Boshqa kategorik ustunlar qo‘shish
-    for col, default_val in default_cats.items():
-        if col not in df_input.columns:
-            df_input[col] = default_val
-
-    # ----------------------
-    # 4. LabelEncoder bilan kodlash
-    # ----------------------
-    for col, le in label_encoders.items():
+# ----------------------
+# 5. LabelEncoder bilan kodlash
+# ----------------------
+for col, le in label_encoders.items():
+    if col in df_input.columns:
         val = df_input[col].astype(str).values[0]
         if val in le.classes_:
             df_input[col] = le.transform([val])
         else:
-            # Yangi label kelganda default 0 ishlatamiz
-            df_input[col] = 0
+            df_input[col] = 0  # yangi label uchun default 0
 
-    # ----------------------
-    # 5. Scaling
-    # ----------------------
-    df_scaled = scaler.transform(df_input[feature_columns])
+# ----------------------
+# 6. Scaling
+# ----------------------
+df_scaled = scaler.transform(df_input[feature_columns])
 
-    # ----------------------
-    # 6. Prediction
-    # ----------------------
-    prediction = model.predict(df_scaled)
-    
-    if target_encoder:
-        pred_label = target_encoder.inverse_transform(prediction)[0]
-    else:
-        pred_label = "Ichki" if prediction[0] == 0 else "Xorijiy"
+# ----------------------
+# 7. Prediction
+# ----------------------
+prediction = model.predict(df_scaled)
+if target_encoder:
+    pred_label = target_encoder.inverse_transform(prediction)[0]
+else:
+    pred_label = "Ichki" if prediction[0] == 0 else "Xorijiy"
 
-    # ----------------------
-    # 7. Natijani chiqarish
-    # ----------------------
-    if pred_label == "Ichki":
-        st.success("🟢 Ichki sayohat")
-    else:
-        st.success("🌍 Xorijiy sayohat")
+# ----------------------
+# 8. Natijani chiqarish
+# ----------------------
+if pred_label == "Ichki":
+    st.success("🟢 Ichki sayohat")
+else:
+    st.success("🌍 Xorijiy sayohat")
