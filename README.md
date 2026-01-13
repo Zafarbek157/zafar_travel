@@ -16,3 +16,7 @@ Sayyohning yo‘nalishini aniqlash:
 ## Ishga tushirish
 ```bash
 python train_model.py
+import joblib
+
+joblib.dump(knn, "model.pkl")
+print("Model saqlandi: model.pkl")
